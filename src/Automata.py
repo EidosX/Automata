@@ -64,6 +64,8 @@ class Automata:
     def isAccepted(self, str):
         currentState = self.getInitialState()
         for char in str:
+            if (char == '%'):
+                continue
             # On fait une liste des transitions possibles depuis currentState avec le symbole char.
             # Si l'automate est deterministe cette liste contient soit 0 soit 1 elements
             transitions = list(filter(lambda t: t.symbol == char, self.getTransitions(currentState)))
