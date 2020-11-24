@@ -8,6 +8,8 @@ class Automata:
             self.sourceState = sourceState # String
             self.destState = destState     # String
             self.symbol = symbol           # String
+        def toString(self):
+            return self.sourceState + " --" + self.symbol + "-> " + self.destState
 
     def __init__(self, states, transitions):
         self.states = states            # [State]
