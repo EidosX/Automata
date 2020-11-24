@@ -8,7 +8,7 @@ class Automata:
             self.sourceState = sourceState # Int
             self.destState = destState     # Int
             self.symbol = symbol           # Char
-    states = []         # [State]
+    states = []         # [Int]
     transitions = []    # [Transition]
     
     def __init__(self, sourceTxt):
@@ -64,7 +64,6 @@ class Automata:
     def isAccepted(self, str):
         currentState = self.getInitialState()
         for char in str:
-            print(currentState)
             # On fait une liste des transitions possibles depuis currentState avec le symbole char.
             # Si l'automate est deterministe cette liste contient soit 0 soit 1 elements
             transitions = list(filter(lambda t: t.symbol == char, self.getTransitions(currentState)))
