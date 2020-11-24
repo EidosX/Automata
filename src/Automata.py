@@ -5,14 +5,12 @@ class Automata:
             self.accepting = False
     class Transition:
         def __init__(self, sourceState, destState, symbol):
-            self.sourceState = sourceState # State
-            self.destState = destState     # State
+            self.sourceState = sourceState # Int
+            self.destState = destState     # Int
             self.symbol = symbol           # Char
-    states = []
-    transitions = []
+    states = []         # [State]
+    transitions = []    # [Transition]
     
-    def getInitialState(self):
-        return self.states[0]
     def __init__(self, sourceTxt):
         lines = sourceTxt.split('\n')
         # We parse each line defining a transition
@@ -35,3 +33,47 @@ class Automata:
             for accepting in acceptingStates:
                 if state.number == int(accepting):
                     state.accepting = True
+
+    def getInitialState(self):
+        return self.states[0]
+    # Returns all transitions which starting state is 'state'
+    def getTransitions(self, state):
+        return list(filter(lambda t: t.sourceState == state.number, self.transitions))
+    def getAlphabet(self):
+        alphabet = []
+        for transition in self.transitions:
+            if alphabet.count(transition.symbol) == 0:
+                alphabet.append(transition.symbol)
+        return alphabet
+
+
+    def isDeterministic(self):
+        for state in self.states:
+            # On fait une liste de toutes les transitions partant de l'etat state
+            outTransitions = self.getTransitions(state)
+            outSymbols = list(map(lambda t: t.symbol, outTransitions))
+
+            # On verifie qu'il n'y ait pas d'epsilon transition autre que la transition sur soi meme
+            if list(filter(lambda t: t.symbol == '%' and t.sourceState != t.destState, outTransitions)) != []:
+                return False
+
+            # On verifie qu'il n'y a pas de duplicats
+            if len(set(outSymbols)) != len(outSymbols):
+                return False
+        return True
+    def isAccepted(self, str):
+        currentState = self.getInitialState()
+        for char in str:
+            print(currentState)
+            # On fait une liste des transitions possibles depuis currentState avec le symbole char.
+            # Si l'automate est deterministe cette liste contient soit 0 soit 1 elements
+            transitions = list(filter(lambda t: t.symbol == char, self.getTransitions(currentState)))
+            # Si l'etat n'a pas de transition pour la lettre alors le mot n'est pas reconnu
+            if (len(transitions) == 0):
+                return False
+            # Sinon on met a jour currentState.
+            # Notons qu'on prend simplement le premier element de transitions,
+            # car on suppose que l'automate est deterministe.
+            # Sinon il faudrait implementer un algorithme recursif.
+            currentState = list(filter(lambda s: s.number == transitions[0].destState, self.states))[0]
+        return True
