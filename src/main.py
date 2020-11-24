@@ -1,20 +1,23 @@
 from Automata import *
+import sys
+import os
 
-#source = """0 a 1
-#0 b 2
-#1 a 1
-#2 b 2
-#A 0 1 2
-#"""
+if len(sys.argv) != 3:
+    print("Error: invalid format. \nUsage: ./automata filename.txt wordtofind")
+    sys.exit(0)
+if not os.path.exists(sys.argv[1]):
+    print("Error: file does not exist")
+    sys.exit(0)
+if not os.path.isfile(sys.argv[1]):
+    print("Error: first argument must be a path to a file")
+    sys.exit(0)
 
-source = """1 a 2
-2 b 3
-3 a 3
-3 b 3
-A 3
-"""
+with open(sys.argv[1], 'r') as file:
+    source = file.read()
+word = sys.argv[2]
 
-word = "aaabb"
-
-a = Automata(source)
-print(a.isAccepted("abaabbab"))
+automata = Automata(source)
+if (not automata.isDeterministic()):
+    print("ERROR")
+else:
+    print("YES" if automata.isAccepted(word) else "NO")
