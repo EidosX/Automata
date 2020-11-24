@@ -3,6 +3,8 @@ class Automata:
         def __init__(self, name):
             self.name = name
             self.accepting = False
+        def toString(self):
+            return self.name + (" (Accepting)" if self.accepting else "")
     class Transition:
         def __init__(self, sourceState, destState, symbol):
             self.sourceState = sourceState # String
