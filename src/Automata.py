@@ -5,20 +5,20 @@ class Automata:
             self.accepting = False
     class Transition:
         def __init__(self, sourceState, destState, symbol):
-            self.sourceState = sourceState # Int
-            self.destState = destState     # Int
-            self.symbol = symbol           # Char
-    states = []         # [Int]
+            self.sourceState = sourceState # String
+            self.destState = destState     # String
+            self.symbol = symbol           # String
+    states = []         # [State]
     transitions = []    # [Transition]
     
     def __init__(self, sourceTxt):
         lines = sourceTxt.split('\n')
         # We parse each line defining a transition
         # le [:-2] retire la derniere ligne (vide) et la ligne definissant les transitions
-        for words in map(lambda l: l.split(' '), lines[:-2]):
+        for words in map(lambda l: l.split(' '), lines[:-1]):
             # We parse the content of the line
-            sourceState = int(words[0])
-            destState   = int(words[2])
+            sourceState = words[0]
+            destState   = words[2]
             symbol      = words[1]
             # We add the two states if they're not already in the list
             if list(map(lambda s: s.number, self.states)).count(sourceState) == 0:
@@ -28,10 +28,10 @@ class Automata:
             # We add the transition in the list
             self.transitions.append(Automata.Transition(sourceState, destState, symbol))
         # We parse the last line i.e the accepting states
-        acceptingStates = lines[-2].split(' ')[+1:]
+        acceptingStates = lines[-1].split(' ')[+1:]
         for state in self.states:
             for accepting in acceptingStates:
-                if state.number == int(accepting):
+                if state.number == accepting:
                     state.accepting = True
 
     def getInitialState(self):
@@ -77,4 +77,4 @@ class Automata:
             # car on suppose que l'automate est deterministe.
             # Sinon il faudrait implementer un algorithme recursif.
             currentState = list(filter(lambda s: s.number == transitions[0].destState, self.states))[0]
-        return True
+        return currentState.accepting
