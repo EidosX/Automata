@@ -16,7 +16,7 @@ with open(sys.argv[1], 'r') as file:
     source = file.read()
 word = sys.argv[2]
 
-automata = Automata(source)
+automata = fileToAutomata(source)
 if (not automata.isDeterministic()):
     print("ERROR")
 else:
