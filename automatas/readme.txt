@@ -1,0 +1,3 @@
+ - 1.af valide tous les mots sur { 0, 1 } telle que leur representation binaire est plus grande ou egale à 7
+ - 2.af reconnait tous les mots de ab(a+b)*
+ - 4.af reconnait tous les mots finissant par b
