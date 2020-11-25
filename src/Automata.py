@@ -64,7 +64,7 @@ class Automata:
             currentState = list(filter(lambda s: s.name == transitions[0].destState, self.states))[0]
         return currentState.accepting
 
-def fileToAutomata(sourceTxt):
+def textToAutomata(sourceTxt):
     states = []
     transitions = []
     lines = sourceTxt.split('\n')

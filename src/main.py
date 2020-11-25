@@ -1,4 +1,5 @@
 from Automata import *
+from AutomataMakeDeterministic import *
 import sys
 import os
 
@@ -16,8 +17,7 @@ with open(sys.argv[1], 'r') as file:
     source = file.read()
 word = sys.argv[2]
 
-automata = fileToAutomata(source)
+automata = textToAutomata(source)
 if (not automata.isDeterministic()):
-    print("ERROR")
-else:
-    print("YES" if automata.isAccepted(word) else "NO")
+    automata = makeDeterministic(automata)
+print("YES" if automata.isAccepted(word) else "NO")
