@@ -28,7 +28,7 @@ class Automata:
         transitions = list(filter(lambda t: not (t[1] == '%' and t[0] == t[2]), transitions))
 
         # We parse all the different states
-        statesStrings = chain(*map(lambda t: [t[0], t[2]], transitions))
+        statesStrings = set(chain(*map(lambda t: [t[0], t[2]], transitions)))
 
         # We convert the parsed states to State objects
         self.states = list(map(lambda s: Automata.State(s, s in acceptingStates), statesStrings))
@@ -38,7 +38,10 @@ class Automata:
             state.transitions.extend(getTransitions(state))
             if state.name == initialState: self.initialState = state
 
-        if not self.isDeterministic(): print('WARNING: Not Deterministic')
+        if not self.isDeterministic():
+            self._makeDeterministic()
+            if not self.isDeterministic():
+                print('WARNING: Couldn\'t determinize automata')
     @staticmethod
     def from_string(string : str):
         transitions = [ tuple(line.split()) for line in string.split('\n')[:-1] ]
@@ -56,8 +59,7 @@ class Automata:
     ######################################
     
     def isDeterministic(self):
-        # PS: On ne verifie pas quand le symbole est epsilon si les deux etats sont bien differents
-        #     car toutes ces transitions (X vers X via epsilon) ont été supprimées dans __init__
+        # PS: Toutes les transitions X vers X via epsilon ont été supprimées dans __init__
         for state in self.states:
             for key, l in groupby(sorted(map(lambda t: t[0], state.transitions))):
                 if (key == '%' or len(list(l)) > 1): return False
@@ -65,6 +67,22 @@ class Automata:
     def isRecognized(self, word : str):
         state = self.initialState
         for symbol in word:
-            if state != None: state = state.getNextState(symbol)
+            if state: state = state.getNextState(symbol)
             else: break
-        return state != None and state.accepting
+        return state and state.accepting
+
+    ######################################
+    #                                    #
+    #            --- TP 2 ---            #
+    #                                    #
+    ######################################
+
+    def _makeDeterministic(self):
+        def removeEpsilons():
+            def getReachableStates(state):
+                for t in state.transitions:
+                    if t[0] != '%': yield t
+                    else: yield from getReachableStates(t[1])
+            for state in self.states:  
+                state.transitions = list(getReachableStates(state))
+        removeEpsilons()
