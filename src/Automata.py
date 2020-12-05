@@ -7,10 +7,10 @@ class Automata:
             self.accepting = accepting
             self.transitions = [] # Liste de tuples (symbol : str, destination : State)
         def __str__(self):
-            return self.name + '*' * self.accepting
+            return self.name + '*'*self.accepting + ' [' + ', '.join(map(lambda t: t[0]+'->'+t[1].name, self.transitions)) + ']'
         def getNextState(self, symbol : str):
             # Devrait tout le temps etre de longueur 1 ou 0, car l'automate est deterministe
-            matchingTransitions = list(filter(lambda t: t[0] == symbol, self.transitions))
+            matchingTransitions = filter(lambda t: t[0] == symbol, self.transitions)
             for t in matchingTransitions: 
                 return t[1]
     
@@ -67,9 +67,10 @@ class Automata:
     def isRecognized(self, word : str):
         state = self.initialState
         for symbol in word:
+            if symbol == '%': continue
             if state: state = state.getNextState(symbol)
             else: break
-        return state and state.accepting
+        return state != None and state.accepting
 
     ######################################
     #                                    #
@@ -78,11 +79,13 @@ class Automata:
     ######################################
 
     def _makeDeterministic(self):
-        def removeEpsilons():
-            def getReachableStates(state):
-                for t in state.transitions:
+        for state in self.states:
+            seen = []
+            def getTransitions(s):
+                seen.append(s)
+                state.accepting = state.accepting or s.accepting
+                for t in s.transitions:
                     if t[0] != '%': yield t
-                    else: yield from getReachableStates(t[1])
-            for state in self.states:  
-                state.transitions = list(getReachableStates(state))
-        removeEpsilons()
+                    elif t[1] not in seen: yield from getTransitions(t[1])
+            state.transitions = set(getTransitions(state))
+        print(*self.states, sep='\n')
