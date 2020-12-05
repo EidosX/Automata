@@ -16,5 +16,5 @@ word = sys.argv[2]
 try: automata = Automata.from_string(source)
 except (ValueError, IndexError): print_and_exit('Invalid automata')
 
-print(f'recognized: {automata.isRecognized(word)}')
+print(f'recognized: {automata.isRecognized(word) and "YES" or "NO"}')
 
