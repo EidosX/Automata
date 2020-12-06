@@ -22,33 +22,33 @@ class Automata:
     def __init__(self, transitions : tuple, initialState : str, acceptingStates : [str]):
         def getTransitions(state):
             for origin, symbol, destination in transitions:
-                if origin == state.name: yield((symbol, self.getStateByName(destination)))
+                if origin == state.name: yield((symbol, next(x for x in states if x.name == destination)))
 
-        self.states = None
         self.initialState = None
 
         # On enleve les transitions epsilon inutiles d'un etat à ce meme etat
         transitions = list(filter(lambda t: not (t[1] == '%' and t[0] == t[2]), transitions))
-
+        
         # We parse all the different states (set is very important for uniqueness!)
         statesStrings = set(chain(*map(lambda t: [t[0], t[2]], transitions)))
-
-        # We convert the parsed states to State objects
-        self.states = list(map(lambda s: Automata.State(s, s in acceptingStates), statesStrings))
         
+        # We convert the parsed states to State objects
+        states = list(map(lambda s: Automata.State(s, s in acceptingStates), statesStrings))
+
         # On ajoute chaque transition à son etat d'origine
-        for state in self.states:
+        for state in states:
             state.transitions.extend(getTransitions(state))
             if state.name == initialState: self.initialState = state
+        
 
         if not self.isDeterministic():
             self._make_deterministic()
             if not self.isDeterministic():
                 print('WARNING: Couldn\'t determinize automata')
     def deepcopy(self):
-        transitions = list(chain(*map(lambda s: map(lambda t: (s.name, t[0], t[1].name), s.transitions), self.states)))
+        transitions = list(chain(*map(lambda s: map(lambda t: (s.name, t[0], t[1].name), s.transitions), self.getStates())))
         initial_state = self.initialState.name
-        accepting_states = list(map(lambda s: s.name, filter(lambda s: s.accepting, self.states)))
+        accepting_states = list(map(lambda s: s.name, filter(lambda s: s.accepting, self.getStates())))
         return Automata(transitions, initial_state, accepting_states)
 
     @staticmethod
@@ -57,11 +57,18 @@ class Automata:
         acceptingStates = string.split('\n')[-1][2:].split()
         return Automata(transitions, transitions[0][0], acceptingStates)
     def __str__(self):
-        return '\n'.join(map(str, self.states))
+        return '\n'.join(map(str, self.getStates()))
     
     def getStateByName(self, state_name : str):
-        for state in self.states:
+        for state in self.getStates():
             if state.name == state_name: return state
+    def getStates(self):
+        states = [self.initialState]
+        for state in states:
+            yield state
+            for sym, st in state.transitions:
+                if st not in states: states.append(st)
+
 
     ######################################
     #                                    #
@@ -71,7 +78,7 @@ class Automata:
     
     # PS: Toutes les transitions X vers X via epsilon ont été supprimées dans __init__
     def isDeterministic(self):
-        for state in self.states:
+        for state in self.getStates():
             for key, l in groupby(sorted(map(lambda t: t[0], state.transitions))):
                 if (key == '%' or len(list(l)) > 1): return False
         return True
@@ -92,7 +99,7 @@ class Automata:
 
         # Remove epsilons
 
-        for state in self.states:
+        for state in self.getStates():
             seen = []
             def get_transitions(s):
                 seen.append(s)
@@ -134,11 +141,10 @@ class Automata:
         # On remplace notre automate par le nouveau
         new_automata = Automata(transitions, initial_state_hash, accepting_states_hashes)
         self.initialState = new_automata.initialState
-        self.states = new_automata.states
         
         #On renomme les nouveaux etats
-        new_names = dict(zip(self.states, map(str, count())))
-        for state in self.states:
+        new_names = dict(zip(self.getStates(), map(str, count())))
+        for state in self.getStates():
             state.name = new_names[state]
 
     ######################################
@@ -150,14 +156,12 @@ class Automata:
     # Returns a new automata, doesn't change self's state
     def kleene(self): 
         automata = self.deepcopy()
-        for state in filter(lambda s: s.accepting, automata.states):
+        for state in filter(lambda s: s.accepting, automata.getStates()):
             state.transitions.append(('%', automata.initialState))
 
         new_initial_state = Automata.State(str(hash(automata)), True)
         new_initial_state.transitions = [('%', automata.initialState)]
-        automata.states.append(new_initial_state)
         automata.initialState = new_initial_state
         
         automata._make_deterministic()
-        print(automata)
         return automata
