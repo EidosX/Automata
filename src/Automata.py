@@ -16,9 +16,9 @@ class Automata:
     
     # transitions : [(origin : State, symbol : str, destination : State)]
     # For example:
-    #   transitions = [('1', 'b', '2'), ('2', 'b', '2')]
-    #   initialState = '1'
-    #   acceptingStates = ['1', '2']
+    #   - transitions = [('1', 'b', '2'), ('2', 'b', '2')]
+    #   - initialState = '1'
+    #   - acceptingStates = ['1', '2']
     def __init__(self, transitions : tuple, initialState : str, acceptingStates : [str]):
         def getTransitions(state):
             for origin, symbol, destination in transitions:
@@ -68,6 +68,11 @@ class Automata:
             yield state
             for sym, st in state.transitions:
                 if st not in states: states.append(st)
+    def normalizeNames(self):
+        #On renomme les etats
+        new_names = dict(zip(self.getStates(), map(str, count())))
+        for state in self.getStates():
+            state.name = new_names[state]
 
 
     ######################################
@@ -113,7 +118,8 @@ class Automata:
         # On appelera un 'superetat' un ensemble / une superposition de plusieurs etats
         
         def hash_superstate(superstate):
-            return str(hash(''.join(map(lambda ss: ss.name, superstate))))
+            # We use str(hash(s)) so that we don't even need to worry about conflicting names
+            return str(hash(''.join(map(lambda s: str(hash(s)), superstate))))
 
         states = [ set([self.initialState]) ]
         initial_state_hash = hash_superstate(states[0])
@@ -142,10 +148,7 @@ class Automata:
         new_automata = Automata(transitions, initial_state_hash, accepting_states_hashes)
         self.initialState = new_automata.initialState
         
-        #On renomme les nouveaux etats
-        new_names = dict(zip(self.getStates(), map(str, count())))
-        for state in self.getStates():
-            state.name = new_names[state]
+        self.normalizeNames()
 
     ######################################
     #                                    #
@@ -159,9 +162,29 @@ class Automata:
         for state in filter(lambda s: s.accepting, automata.getStates()):
             state.transitions.append(('%', automata.initialState))
 
-        new_initial_state = Automata.State(str(hash(automata)), True)
+        new_initial_state = Automata.State(str(hash(23473842784)), True)
         new_initial_state.transitions = [('%', automata.initialState)]
         automata.initialState = new_initial_state
         
         automata._make_deterministic()
+        return automata
+
+    def concat(self, oth):
+        automata = self.deepcopy()
+        other = oth.deepcopy()
+        # La conversion en list est très importante!
+        # Sinon le generateur getStates s'adapte et renvoie les etats qu'on vient d'ajouter
+        for s in list(filter(lambda s: s.accepting, automata.getStates())):
+            s.transitions.append(('%', other.initialState))
+            s.accepting = False
+        automata._make_deterministic()
+        return automata
+    def union(self, oth):
+        automata = self.deepcopy()
+        other = oth.deepcopy()
+        new_initial_state = Automata.State(str(hash(98439832)), False)
+        new_initial_state.transitions = [('%', automata.initialState), ('%', other.initialState)]
+        automata.initialState = new_initial_state
+        automata._make_deterministic()
+        print(automata)
         return automata

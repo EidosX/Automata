@@ -16,4 +16,17 @@ word = sys.argv[2]
 try: automata = Automata.from_string(source)
 except (ValueError, IndexError): print_and_exit('Invalid automata')
 
-print(f'recognized: {automata.isRecognized(word) and "YES" or "NO"}')
+osef = Automata.from_string("""1 1 2
+2 1 3
+3 1 4
+4 0 4
+4 1 4
+2 0 5
+2 1 5
+5 0 6
+5 1 6
+6 0 4
+6 1 4
+A 4""")
+
+print(f'recognized: {automata.union(osef).isRecognized(word) and "YES" or "NO"}')
