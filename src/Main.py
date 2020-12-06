@@ -13,8 +13,7 @@ with open(sys.argv[1], 'r') as file: source = file.read()
 word = sys.argv[2]
 
 #On crée l'automate a partir du fichier
-try: automata = Automata.from_string(source)
+try: automata = Automata.from_string(source).kleene()
 except (ValueError, IndexError): print_and_exit('Invalid automata')
 
 print(f'recognized: {automata.isRecognized(word) and "YES" or "NO"}')
-

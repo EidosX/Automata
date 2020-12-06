@@ -16,7 +16,7 @@ class Automata:
     
     # transitions : [(origin : State, symbol : str, destination : State)]
     # For example:
-    #   transitions = [(1, b, 2), (2, b, 2)]
+    #   transitions = [('1', 'b', '2'), ('2', 'b', '2')]
     #   initialState = '1'
     #   acceptingStates = ['1', '2']
     def __init__(self, transitions : tuple, initialState : str, acceptingStates : [str]):
@@ -30,7 +30,7 @@ class Automata:
         # On enleve les transitions epsilon inutiles d'un etat à ce meme etat
         transitions = list(filter(lambda t: not (t[1] == '%' and t[0] == t[2]), transitions))
 
-        # We parse all the different states
+        # We parse all the different states (set is very important for uniqueness!)
         statesStrings = set(chain(*map(lambda t: [t[0], t[2]], transitions)))
 
         # We convert the parsed states to State objects
@@ -45,6 +45,12 @@ class Automata:
             self._make_deterministic()
             if not self.isDeterministic():
                 print('WARNING: Couldn\'t determinize automata')
+    def deepcopy(self):
+        transitions = list(chain(*map(lambda s: map(lambda t: (s.name, t[0], t[1].name), s.transitions), self.states)))
+        initial_state = self.initialState.name
+        accepting_states = list(map(lambda s: s.name, filter(lambda s: s.accepting, self.states)))
+        return Automata(transitions, initial_state, accepting_states)
+
     @staticmethod
     def from_string(string : str):
         transitions = [ tuple(line.split()) for line in string.split('\n')[:-1] ]
@@ -134,3 +140,24 @@ class Automata:
         new_names = dict(zip(self.states, map(str, count())))
         for state in self.states:
             state.name = new_names[state]
+
+    ######################################
+    #                                    #
+    #            --- TP 3 ---            #
+    #                                    #
+    ######################################
+    
+    # Returns a new automata, doesn't change self's state
+    def kleene(self): 
+        automata = self.deepcopy()
+        for state in filter(lambda s: s.accepting, automata.states):
+            state.transitions.append(('%', automata.initialState))
+
+        new_initial_state = Automata.State(str(hash(automata)), True)
+        new_initial_state.transitions = [('%', automata.initialState)]
+        automata.states.append(new_initial_state)
+        automata.initialState = new_initial_state
+        
+        automata._make_deterministic()
+        print(automata)
+        return automata
