@@ -186,5 +186,4 @@ class Automata:
         new_initial_state.transitions = [('%', automata.initialState), ('%', other.initialState)]
         automata.initialState = new_initial_state
         automata._make_deterministic()
-        print(automata)
         return automata

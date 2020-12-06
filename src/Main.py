@@ -29,4 +29,4 @@ osef = Automata.from_string("""1 1 2
 6 1 4
 A 4""")
 
-print(f'recognized: {automata.union(osef).isRecognized(word) and "YES" or "NO"}')
+print(f'recognized: {automata.isRecognized(word) and "YES" or "NO"}')
