@@ -64,8 +64,7 @@ class Automata:
     # Returns an automata with a single and accepting state
     @staticmethod
     def epsilon():
-        automata = Automata([('0', 'X', '0')], '0', ['0'])
-        # TODO
+        automata = Automata([('0', '', '0')], '0', ['0'])
         return automata
     def __str__(self):
         return '\n'.join(map(str, self.get_states()))
