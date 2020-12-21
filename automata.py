@@ -11,9 +11,8 @@ class Automata:
             return self.name + '*'*self.accepting + transitions_str
         def get_next_state(self, symbol: str):
             # Devrait tout le temps etre de longueur 1 ou 0, car l'automate est deterministe
-            matching_transitions = filter(lambda t: t[0] == symbol, self.transitions)
-            for transition in matching_transitions:
-                return transition[1]
+            matching_transitions = [t for t in self.transitions if t[0] == symbol]
+            return matching_transitions[0][1] if matching_transitions else None
 
     # transitions: [(origin: State, symbol: str, destination: State)]
     # For example:
@@ -93,11 +92,12 @@ class Automata:
     #                                    #
     ######################################
 
-    # PS: Toutes les transitions X vers X via epsilon ont été supprimées dans __init__
+    # PS: Toutes les transitions X vers X via epsilon ont déjà été supprimées dans __init__
     def is_deterministic(self):
         for state in self.get_states():
+            # On itere sur chaque transition pour chaque symbole
             for symbol, transitions in groupby(sorted(t[0] for t in state.transitions)):
-                if (symbol == '%' or len(list(transitions)) > 1): return False
+                if symbol == '%' or len(list(transitions)) > 1: return False
         return True
     def is_recognized(self, word: str):
         state = self.initial_state
@@ -117,7 +117,7 @@ class Automata:
         # Remove epsilons
 
         for state in self.get_states():
-            seen = []
+            seen = [] # Necessary to avoid inifite loops in some cases
             def get_transitions(s):
                 seen.append(s)
                 state.accepting = state.accepting or s.accepting
@@ -127,7 +127,7 @@ class Automata:
             state.transitions = set(get_transitions(state))
 
         # Reduce transitions
-        # On appelera un 'superetat' un ensemble / une superposition de plusieurs etats
+        # On appelera un 'superetat' une superposition de plusieurs etats
 
         def hash_superstate(superstate):
             # We use str(hash(s)) so that we don't even need to worry about conflicting names
@@ -170,6 +170,9 @@ class Automata:
     #                                    #
     ######################################
 
+    # Note: on ne normalise pas les noms car _make_deterministic le fait deja
+    # Aussi, les noms pris au hasard ne posent pas probleme apres normalisation
+
     # Returns a new automata, doesn't change self's state
     def kleene(self):
         automata = self.deepcopy()
@@ -193,6 +196,7 @@ class Automata:
             s.accepting = False
         automata._make_deterministic()
         return automata
+    
     def union(self, oth):
         automata = self.deepcopy()
         other = oth.deepcopy()
